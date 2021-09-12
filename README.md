@@ -63,4 +63,30 @@ class ViewController: UIViewController {
 
 
 ```
+### Action Group
+액션 그룹을 사용하면, 여러 액션들을 동시에 실행시킬 수 있다.
+예를 들면, 도형도 움직이고 색깔도 변경시키고
 
+InterpolationAction 함수를 통해서 다양한 액션을 구성.
+- from -> to : 도형의 크기, 색
+- duration : 속도? 번역은 지속이긴한데, 해당 시간동안 액션이 이뤄짐.
+- easing: 움직임 : 갑자기 빨라졌다 느려졌다. 계속 일정한 속도 등등 다양한 옵션.
+  - 그리고 해당 액션이 실행될 뷰를 선택.
+
+ActionGroup함수를 사용해서 모든 액션들의 그룹을 설정.
+```
+
+// Make a group to run them at the same time
+let moveAndChangeColor = ActionGroup(actions: move, changeColor)
+
+```
+scheduler.run으로 실행.
+
+### Repeat
+yoyo함수 사용.
+액션이나, 액션그룹 데이터타입에 yoyo().repeat옵션 함수를 사용해서 반복시킬수 있음.
+```
+let repeat2 = moveAndChangeColor.yoyo().repeatedForever()
+
+schedular2.run(action: repeat2)
+```
