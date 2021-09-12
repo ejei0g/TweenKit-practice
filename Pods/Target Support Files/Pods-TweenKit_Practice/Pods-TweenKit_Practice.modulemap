@@ -1,0 +1,6 @@
+framework module Pods_TweenKit_Practice {
+  umbrella header "Pods-TweenKit_Practice-umbrella.h"
+
+  export *
+  module * { export * }
+}

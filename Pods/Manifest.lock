@@ -1,0 +1,16 @@
+PODS:
+  - TweenKit (1.0.3)
+
+DEPENDENCIES:
+  - TweenKit
+
+SPEC REPOS:
+  trunk:
+    - TweenKit
+
+SPEC CHECKSUMS:
+  TweenKit: 7f32dbdda44609be0cfb3fe853af9562cd1e3564
+
+PODFILE CHECKSUM: 5f0c85a2b9db995ff2de949bb62600cc1947d42b
+
+COCOAPODS: 1.10.1
