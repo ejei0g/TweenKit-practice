@@ -81,12 +81,18 @@ let moveAndChangeColor = ActionGroup(actions: move, changeColor)
 
 ```
 scheduler.run으로 실행.
+### repeat
+요요와 리핏의 차이는 요요는 왔다 갔다,
+ 리핏은 처음으로 돌아가서 다시 실행.
 
-### Repeat
+### yoyo
 yoyo함수 사용.
 액션이나, 액션그룹 데이터타입에 yoyo().repeat옵션 함수를 사용해서 반복시킬수 있음.
 ```
 let repeat2 = moveAndChangeColor.yoyo().repeatedForever()
 
 schedular2.run(action: repeat2)
-```
+  ```
+  //스케쥴러는 어떤거를 사용해도 상관이 없음
+  //대신 각각의 애니메이션이 사용하는 뷰는 하나의 애니메이션당 하나의 뷰가 필요함.
+  //예를 들어 첫번째 애니메이션과 두번째 애니메이션이 같은 뷰를 사용한다면, 나중에 실행된 애니메이션의 액션이 뷰를 통해 실행됨.

@@ -15,10 +15,10 @@ import TweenKit //1.
 
 class ViewController: UIViewController {
     let scheduler = ActionScheduler() //2.
-    let schedular2 = ActionScheduler()
+    let scheduler2 = ActionScheduler()
     
     // The view we will be animating
-    private let squareView: UIView = {
+    private let myFirstSquareView: UIView = {
         let view = UIView(frame: .zero)
         view.backgroundColor = UIColor.red
         view.center = CGPoint(x: 100, y: 100)
@@ -26,64 +26,73 @@ class ViewController: UIViewController {
         return view
     }()
 
-    private let squareView2: UIView = {
+    private let mySecondSquareView: UIView = {
         let view = UIView(frame: .zero)
         view.backgroundColor = UIColor.red
-        view.center = CGPoint(x: 100, y: 100)
+        view.center = CGPoint(x: 100, y: 700)
         view.frame.size = CGSize(width: 70, height: 70)
         return view
     }()
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // 5. 애니메이션 작업 만들기
-        // Tweenable protocol을 채택하는친구들은 사용가능
-
-        // view 추가!!
-        view.addSubview(squareView)
-        view.addSubview(squareView2)
-        // 이동할 도형 설정
+    func myFirstAnimation() {
         let fromRect = CGRect(x: 50, y: 50, width: 40, height: 40)
         let toRect = CGRect(x: 100, y: 500, width: 300, height: 100)
-                
         // 기본 단위인 액션을 만들자.
         let action = InterpolationAction(from: fromRect,
                                          to: toRect,
                                          duration: 1.0,
                                          easing: .exponentialInOut) {
-            [unowned self] in self.squareView2.frame = $0
+            [unowned self] in self.myFirstSquareView.frame = $0
         }
-        
         // 액션을 반복시킬수 있다. repeat함수를 사용해보자
-        let repeatedAction = action.yoyo().repeatedForever()
-            
+        //let repeatedAction = action.yoyo().repeatedForever()
+        let repeatedAction = action.repeatedForever()
         // 액션을 실행.
         scheduler.run(action: repeatedAction)
 
-        // Create a move action
-        let AGfromRect = CGRect(x: 50, y: 50, width: 40, height: 40)
-        let AGtoRect = CGRect(x: 100, y: 100, width: 200, height: 100)
-                
-        let move = InterpolationAction(from: AGfromRect,
-                                         to: AGtoRect,
-                                         duration: 5,
-                                         easing: .exponentialOut) {
-                                [unowned self] in self.squareView.frame = $0
-        }
-                
-        // Create a color change action
-        let changeColor = InterpolationAction(from: UIColor.red,
-                                              to: UIColor.orange,
-                                              duration: 2.0,
-                                              easing: .exponentialOut) {
-                                [unowned self] in self.squareView.backgroundColor = $0
-        }
-                
-        // Make a group to run them at the same time
-        let moveAndChangeColor = ActionGroup(actions: move, changeColor)
-        //scheduler2.run(action: moveAndChangeColor)
-        let repeat2 = moveAndChangeColor.yoyo().repeatedForever()
-        schedular2.run(action: repeat2)
+    }
+    
+    func moveAndColorAnimation() {
+        
+         // Create a move action
+         let AGfromRect = CGRect(x: 50, y: 50, width: 40, height: 40)
+         let AGtoRect = CGRect(x: 100, y: 100, width: 200, height: 100)
+                 
+         let move = InterpolationAction(from: AGfromRect,
+                                          to: AGtoRect,
+                                          duration: 2.0,
+                                          easing: .exponentialOut) {
+                                 [unowned self] in self.mySecondSquareView.frame = $0
+         }
+                 
+         // Create a color change action
+         let changeColor = InterpolationAction(from: UIColor.red,
+                                               to: UIColor.orange,
+                                               duration: 2.0,
+                                               easing: .exponentialOut) {
+                                 [unowned self] in self.mySecondSquareView.backgroundColor = $0
+         }
+                 
+         // Make a group to run them at the same time
+         let moveAndChangeColor = ActionGroup(actions: move, changeColor)
+         //scheduler2.run(action: moveAndChangeColor)
+         let repeat2 = moveAndChangeColor.yoyo().repeatedForever()
+         scheduler.run(action: repeat2)
+
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        view.addSubview(myFirstSquareView)
+        view.addSubview(mySecondSquareView)
+
+        myFirstAnimation()
+        moveAndColorAnimation()
+        
+        //스케쥴러는 어떤거를 사용해도 상관이 없음
+        //대신 각각의 애니메이션이 사용하는 뷰는 하나의 애니메이션당 하나의 뷰가 필요함.
+        //예를 들어 첫번째 애니메이션과 두번째 애니메이션이 같은 뷰를 사용한다면, 나중에 실행된 애니메이션의 액션이 뷰를 통해 실행됨.
     }
 
 }
