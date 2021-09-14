@@ -88,7 +88,7 @@ class ViewController: UIViewController {
         
         view.addSubview(myFirstSquareView)
         view.addSubview(mySecondSquareView)
-        
+        view.addSubview(rocketImageView)
         myFirstAnimation()
         moveAndColorAnimation()
         
@@ -115,10 +115,10 @@ class ViewController: UIViewController {
         circleLayers = circleLayers.reversed()
         
         myArcActions()
+        myBezierActions()
     }
     
-    //Arc Actions
-    
+    //MARK: - Arc Actions
     private var circleLayers = [CALayer]() //서클 레이어들 변수 설정.
     
     func myArcActions() {
@@ -152,7 +152,103 @@ class ViewController: UIViewController {
         scheduler.run(action: repeatForever)
         
     }
+    
+    //MARK: - Bezier Actions
+    
+    //add rocket image. (asset 추가, subView추가)
+    private let rocketImageView: UIImageView = {
+        let image = UIImage(named: "Rocket")!
+        let imageView = UIImageView(image: image)
+        let scale = CGFloat(0.2)
+        imageView.frame.size = CGSize(width: image.size.width * scale,
+                                      height: image.size.height * scale)
+        return imageView
+    }()
+    
+    //path 설정.
+    private var path: UIBezierPath {
+        let bounds = view.bounds
+        
+        let controlPointsYOffset = bounds.width * 0.4
+        let endPointsYOffset = bounds.size.width * 0.2
+        
+        let start = CGPoint(x: 0,
+                            y: bounds.size.height/2 + endPointsYOffset)
+        let control1 = CGPoint(x: bounds.size.width/3,
+                               y: bounds.size.height/2 + controlPointsYOffset)
+        let control2 = CGPoint(x: bounds.size.width/3*2,
+                               y: bounds.size.height/2 - controlPointsYOffset)
+        let end = CGPoint(x: bounds.size.width,
+                          y: bounds.size.height/2 - endPointsYOffset - bounds.size.width*0.1)
+        
+        let path = UIBezierPath()
+        path.move(to: start)
+        path.addCurve(to: end, controlPoint1: control1, controlPoint2: control2)
+        return path
+    }
+    
+    func myBezierActions() {
+
+        let action = BezierAction(path: path.asBezierPath(), duration: 4.0) {
+            [unowned self] (postion, rotation) in
+
+            self.rocketImageView.center = postion
+
+            let rocketRotation = CGFloat(rotation.value)
+            self.rocketImageView.transform = CGAffineTransform(rotationAngle: rocketRotation)
+        }
+
+        action.easing = .exponentialInOut
+        let repeatedAction = action.repeatedForever()
+   
+        scheduler.run(action: repeatedAction)
+
+    }
+    
+    //MARK: - Scrubbable Actions
+//    private let squareView: UIView = {
+//        let view = UIView(frame: .zero)
+//        view.backgroundColor = UIColor.red
+//        view.center = CGPoint(x: 100, y: 100)
+//        view.frame.size = CGSize(width: 70, height: 70)
+//        return view
+//    }()
+//    
+//    private var actionScrubber: ActionScrubber?
+//    private let scrubbable: Bool
+//    
+//    @objc private func sliderValueChanged() {
+//        actionScrubber?.update(t: Double(slider.value))
+//    }
+//    
+//    private let slider: UISlider = {
+//        let slider = UISlider(frame: .zero)
+//        slider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+//        slider.minimumValue = 0
+//        slider.maximumValue = 1
+//        slider.isUserInteractionEnabled = true
+//        slider.isContinuous = true
+//        return slider
+//    }()
+//    
+//    func myScrubbableActions() {
+//        let move = InterpolationAction(from: { [unowned self] in self.squareView.frame },
+//                                       to: CGRect(x: 130, y: 100, width: 100, height: 100),
+//                                       duration: 1,
+//                                       easing: .elasticOut) {
+//                                        [unowned self] in self.squareView.frame = $0
+//        }
+//                
+//        self.actionScrubber = ActionScrubber(action: move)
+//
+//        // Scrub the action in a UISlider callback
+//        func sliderChanged(slider: UISlider) {
+//            actionScrubber.update(t: Double(slider.value))
+//        }
+//
+//    }
 }
+//MARK: - Ex: CALayer.center
 
 extension CALayer {
     var center: CGPoint {
