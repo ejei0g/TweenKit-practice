@@ -16,6 +16,7 @@ import TweenKit //1.
 class ViewController: UIViewController {
     let scheduler = ActionScheduler() //2.
     let scheduler2 = ActionScheduler()
+    @IBOutlet weak var testButton: UIButton!
     
     // The view we will be animating
     private let myFirstSquareView: UIView = {
@@ -89,8 +90,9 @@ class ViewController: UIViewController {
         view.addSubview(myFirstSquareView)
         view.addSubview(mySecondSquareView)
         view.addSubview(rocketImageView)
-        myFirstAnimation()
-        moveAndColorAnimation()
+        view.addSubview(slider)
+        //myFirstAnimation()
+        //moveAndColorAnimation()
         
         //스케쥴러는 어떤거를 사용해도 상관이 없음
         //대신 각각의 애니메이션이 사용하는 뷰는 하나의 애니메이션당 하나의 뷰가 필요함.
@@ -114,10 +116,22 @@ class ViewController: UIViewController {
         }
         circleLayers = circleLayers.reversed()
         
-        myArcActions()
+        //myArcActions()
         myBezierActions()
+
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        // Layout Slider
+        slider.sizeToFit()
+        let margin = CGFloat(5)
+        slider.frame = CGRect(x: margin,
+                              y: view.bounds.size.height - slider.bounds.size.height - 50,
+                              width: view.bounds.size.width - (margin * 2),
+                              height: slider.bounds.size.height);
+    }
     //MARK: - Arc Actions
     private var circleLayers = [CALayer]() //서클 레이어들 변수 설정.
     
@@ -201,53 +215,38 @@ class ViewController: UIViewController {
         action.easing = .exponentialInOut
         let repeatedAction = action.repeatedForever()
    
-        scheduler.run(action: repeatedAction)
+        //scheduler.run(action: repeatedAction)
+        
+        //Scrubbable
+        actionScrubber = ActionScrubber(action: action)
 
     }
     
     //MARK: - Scrubbable Actions
-//    private let squareView: UIView = {
-//        let view = UIView(frame: .zero)
-//        view.backgroundColor = UIColor.red
-//        view.center = CGPoint(x: 100, y: 100)
-//        view.frame.size = CGSize(width: 70, height: 70)
-//        return view
-//    }()
-//    
-//    private var actionScrubber: ActionScrubber?
-//    private let scrubbable: Bool
-//    
-//    @objc private func sliderValueChanged() {
-//        actionScrubber?.update(t: Double(slider.value))
-//    }
-//    
-//    private let slider: UISlider = {
-//        let slider = UISlider(frame: .zero)
-//        slider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
-//        slider.minimumValue = 0
-//        slider.maximumValue = 1
-//        slider.isUserInteractionEnabled = true
-//        slider.isContinuous = true
-//        return slider
-//    }()
-//    
-//    func myScrubbableActions() {
-//        let move = InterpolationAction(from: { [unowned self] in self.squareView.frame },
-//                                       to: CGRect(x: 130, y: 100, width: 100, height: 100),
-//                                       duration: 1,
-//                                       easing: .elasticOut) {
-//                                        [unowned self] in self.squareView.frame = $0
-//        }
-//                
-//        self.actionScrubber = ActionScrubber(action: move)
-//
-//        // Scrub the action in a UISlider callback
-//        func sliderChanged(slider: UISlider) {
-//            actionScrubber.update(t: Double(slider.value))
-//        }
-//
-//    }
+    //1. add slider and scrubbable and sliderValueChanged func
+    private var actionScrubber: ActionScrubber?
+    
+    private let slider: UISlider = {
+        let slider = UISlider(frame: .zero)
+        slider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+        slider.minimumValue = 0
+        slider.maximumValue = 1
+        slider.isUserInteractionEnabled = true
+        slider.isContinuous = true
+        return slider
+    }()
+    
+    @objc private func sliderValueChanged() {
+        actionScrubber?.update(t: Double(slider.value))
+    }
+    //2. action setting sequence
+    
+    @IBAction func pushTestButton(_ sender: UIButton) {
+        self.slider.value += 0.1
+        sliderValueChanged()
+    }
 }
+
 //MARK: - Ex: CALayer.center
 
 extension CALayer {
