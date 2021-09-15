@@ -170,4 +170,113 @@ extension CALayer {
 ```
 
 ### Bezier Actions
+
+Bezier? [베지에 곡선](https://ko.wikipedia.org/wiki/%EB%B2%A0%EC%A7%80%EC%97%90_%EA%B3%A1%EC%84%A0)
+
+> 한마디로 “베지에 곡선”이란 선분 위를 일정 속도로 움직이는 점과 그러한 점과 점을 잇는 또 다른 선분, 그리고 그 위를 일정 속도로 이동하는 또 다른 점 등을 조합해 최종적으로 특정 점이 그리는 궤적을 이용해 곡선을 그려내는 방법을 뜻한다. 이해하는 데 도움이 됐으리라 기대한다.
+
+[중학생도 알 수 있는 베지에 곡선(Bezier Curves)](https://blog.coderifleman.com/2016/12/30/bezier-curves/)
+
+```swift
+let action = BezierAction(path: bezierPath, duration: 4.0) {
+    [unowned self] (postion, rotation) in
+            
+    self.rocketImageView.center = postion
+            
+    let rocketRotation = CGFloat(rotation.value)
+    self.rocketImageView.transform = CGAffineTransform(rotationAngle: rocketRotation)
+}
+    
+action.easing = .exponentialInOut
+        
+scheduler.run(action: action)
+```
+
+당연히에러가 발생. path변수 설정이 필요하고 로켓이미지도 에셋에 추가
+
+path, bound에 대한 처리가 필요 (샘플9. RocketView 참고)
+
+```swift
+//MARK: - Bezier Actions
+
+//add rocket image. (asset 추가, subView추가)
+private let rocketImageView: UIImageView = {
+    let image = UIImage(named: "Rocket")!
+    let imageView = UIImageView(image: image)
+    let scale = CGFloat(0.2)
+    imageView.frame.size = CGSize(width: image.size.width * scale,
+                                  height: image.size.height * scale)
+    return imageView
+}()
+
+//path 설정.
+private var path: UIBezierPath {
+    let bounds = view.bounds
+    
+    let controlPointsYOffset = bounds.width * 0.4
+    let endPointsYOffset = bounds.size.width * 0.2
+    
+    let start = CGPoint(x: 0,
+                        y: bounds.size.height/2 + endPointsYOffset)
+    let control1 = CGPoint(x: bounds.size.width/3,
+                           y: bounds.size.height/2 + controlPointsYOffset)
+    let control2 = CGPoint(x: bounds.size.width/3*2,
+                           y: bounds.size.height/2 - controlPointsYOffset)
+    let end = CGPoint(x: bounds.size.width,
+                      y: bounds.size.height/2 - endPointsYOffset - bounds.size.width*0.1)
+    
+    let path = UIBezierPath()
+    path.move(to: start)
+    path.addCurve(to: end, controlPoint1: control1, controlPoint2: control2)
+    return path
+}
+
+func myBezierActions() {
+
+    let action = BezierAction(path: path.asBezierPath(), duration: 4.0) {
+        [unowned self] (postion, rotation) in
+
+        self.rocketImageView.center = postion
+
+        let rocketRotation = CGFloat(rotation.value)
+        self.rocketImageView.transform = CGAffineTransform(rotationAngle: rocketRotation)
+    }
+
+    action.easing = .exponentialInOut
+    let repeatedAction = action.repeatedForever()
+
+    scheduler.run(action: repeatedAction)
+
+}
+```
+
 ### Scrubbable actions
+
+해당 함수를 사용해서 full slider를 통해서도 백그라운드를 변경 시킬수 있을지
+
+1. add slider and scrubbable and sliderValueChanged func
+
+    ```swift
+    private var actionScrubber: ActionScrubber?
+
+    private let slider: UISlider = {
+        let slider = UISlider(frame: .zero)
+        slider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+        slider.minimumValue = 0
+        slider.maximumValue = 1
+        slider.isUserInteractionEnabled = true
+        slider.isContinuous = true
+        return slider
+    }()
+
+    @objc private func sliderValueChanged() {
+        actionScrubber?.update(t: Double(slider.value))
+    }
+    ```
+
+1. action setting sequence
+
+    ```swift
+    //Scrubbable
+    actionScrubber = ActionScrubber(action: action)
+    ```
