@@ -12,10 +12,16 @@
 
 import UIKit
 import TweenKit //1.
+// MARK: - Constants
+fileprivate let defaultBackgroundColorTop = UIColor(red: 0.263, green: 0.118, blue: 0.565, alpha: 1.00)
+fileprivate let defaultBackgroundColorBottom = UIColor(red: 1.000, green: 0.357, blue: 0.525, alpha: 1.00)
+
+//MARK: - ViewController
 
 class ViewController: UIViewController {
     let scheduler = ActionScheduler() //2.
     let scheduler2 = ActionScheduler()
+    
     @IBOutlet weak var testButton: UIButton!
     
     // The view we will be animating
@@ -86,7 +92,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        view.layer.addSublayer(gradientLayer)
         view.addSubview(myFirstSquareView)
         view.addSubview(mySecondSquareView)
         view.addSubview(rocketImageView)
@@ -117,13 +123,17 @@ class ViewController: UIViewController {
         circleLayers = circleLayers.reversed()
         
         //myArcActions()
-        myBezierActions()
+        //myBezierActions()
+        
+        let backgroundActions = changedBackgroundColor()
+        actionScrubber = ActionScrubber(action: backgroundActions)
 
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
+        gradientLayer.frame = view.bounds
+       
         // Layout Slider
         slider.sizeToFit()
         let margin = CGFloat(5)
@@ -245,6 +255,57 @@ class ViewController: UIViewController {
         self.slider.value += 0.1
         sliderValueChanged()
     }
+    
+    //MARK: - Background
+    private let gradientLayer: CAGradientLayer = {
+        let layer = CAGradientLayer()
+        return layer
+    }()
+    //  gradientLayer.frame = view.bounds  <- in viewdidlayout
+    
+    private var backgroundColorTop = defaultBackgroundColorTop {
+        didSet{ updateBackgroundGradient() }
+    }
+    
+    private var backgroundColorBottom = defaultBackgroundColorBottom {
+        didSet{ updateBackgroundGradient() }
+    }
+    
+    private func updateBackgroundGradient() {
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
+        gradientLayer.colors = [backgroundColorTop.cgColor, backgroundColorBottom.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        gradientLayer.locations = [0.0, 1.0]
+        
+        CATransaction.commit()
+    }
+    
+    func changedBackgroundColor() -> FiniteTimeAction {
+        let duration = 2.0
+        // Change background color
+        let changeBackgroundColorTop = InterpolationAction(from: defaultBackgroundColorTop,
+                                                           to: UIColor(red: 0.118, green: 0.376, blue: 0.682, alpha: 1.00),
+                                                           duration: duration,
+                                                           easing: .exponentialOut,
+                                                           update: { [unowned self] in self.backgroundColorTop = $0 })
+        
+        let changeBackgroundColorBottom = InterpolationAction(from: defaultBackgroundColorBottom,
+                                                              to: UIColor(red: 0.569, green: 0.824, blue: 0.941, alpha: 1.00),
+                                                              duration: duration,
+                                                              easing: .exponentialOut,
+                                                              update: { [unowned self] in self.backgroundColorBottom = $0 })
+        // Create group
+        let group = ActionGroup(actions: changeBackgroundColorTop, changeBackgroundColorBottom)
+        
+        return group
+    }
+    
+    
+    //end ViewController
 }
 
 //MARK: - Ex: CALayer.center
