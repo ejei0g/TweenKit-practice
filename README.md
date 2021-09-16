@@ -280,3 +280,94 @@ func myBezierActions() {
     //Scrubbable
     actionScrubber = ActionScrubber(action: action)
     ```
+    
+    
+### Background 변경
+
+fileprivate 은 .swift내부에서만 접근 가능한 접근 제어자.
+
+1. 기본 백그라운드 설정
+
+    ```swift
+    fileprivate let defaultBackgroundColorTop = UIColor(red: 0.263, green: 0.118, blue: 0.565, alpha: 1.00)
+    fileprivate let defaultBackgroundColorBottom = UIColor(red: 1.000, green: 0.357, blue: 0.525, alpha: 1.00)
+    ```
+
+2. viewController 내부에 gradient, top,bottom background color 설정
+
+    ```swift
+    private let gradientLayer: CAGradientLayer = {
+        let layer = CAGradientLayer()
+        return layer
+    }()
+    //  gradientLayer.frame = view.bounds  <- in viewdidlayout
+
+    private var backgroundColorTop = defaultBackgroundColorTop {
+    	  didSet{ updateBackgroundGradient() }
+    }
+
+    private var backgroundColorBottom = defaultBackgroundColorBottom {
+    	  didSet{ updateBackgroundGradient() }
+    }
+    ```
+
+3. viewDidLayoutSubviews 에 그라데이션 프레임 설정, viewDidLoad에 레이어 넣고 액션 실행
+
+    ```swift
+    override func viewDidLayoutSubviews() {
+      super.viewDidLayoutSubviews()
+      gradientLayer.frame = view.bounds
+    	...
+    }
+
+    override func viewDidLoad() {
+      super.viewDidLoad()
+      view.layer.addSublayer(gradientLayer)
+    	...
+    	let backgroundActions = changedBackgroundColor()
+      actionScrubber = ActionScrubber(action: backgroundActions)
+    }
+    ```
+
+4. update 함수
+
+    공부할게 점점 늘어나는 느낌적인 느낌😭😭😭  (TODO: Layer, CAGradientLayer, CATransaction)
+
+    ```swift
+    private func updateBackgroundGradient() {
+          
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
+        gradientLayer.colors = [backgroundColorTop.cgColor, backgroundColorBottom.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        gradientLayer.locations = [0.0, 1.0]
+        
+        CATransaction.commit()
+    }
+    ```
+
+5. action 만들기
+
+    ```swift
+    func changedBackgroundColor() -> FiniteTimeAction {
+        let duration = 2.0
+        // Change background color
+        let changeBackgroundColorTop = InterpolationAction(from: defaultBackgroundColorTop,
+                                                           to: UIColor(red: 0.118, green: 0.376, blue: 0.682, alpha: 1.00),
+                                                           duration: duration,
+                                                           easing: .exponentialOut,
+                                                           update: { [unowned self] in self.backgroundColorTop = $0 })
+        
+        let changeBackgroundColorBottom = InterpolationAction(from: defaultBackgroundColorBottom,
+                                                              to: UIColor(red: 0.569, green: 0.824, blue: 0.941, alpha: 1.00),
+                                                              duration: duration,
+                                                              easing: .exponentialOut,
+                                                              update: { [unowned self] in self.backgroundColorBottom = $0 })
+        // Create group
+        let group = ActionGroup(actions: changeBackgroundColorTop, changeBackgroundColorBottom)
+        
+        return group
+    }
+    ```
